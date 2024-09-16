@@ -1,70 +1,86 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect } from "react";
+import { Dimensions, StyleSheet, View, Text } from "react-native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import {
+  Canvas,
+  Rect,
+  rotate,
+  SweepGradient,
+  vec,
+} from "@shopify/react-native-skia";
+import {
+  Easing,
+  useDerivedValue,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
+const { width, height } = Dimensions.get("window");
 
 export default function HomeScreen() {
+  const rotation = useSharedValue(0);
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const centerVec = vec(centerX, centerY);
+
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(2, {
+        duration: 4000,
+        easing: Easing.linear,
+      }),
+      -1,
+      false
+    );
+  }, [rotation]);
+
+  const animationRotation = useDerivedValue(() => {
+    return [{ rotate: Math.PI * rotation.value }];
+  }, [rotation]);
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Canvas style={styles.container}>
+        <Rect y={0} x={0} width={width} height={height} color={"black"}>
+          <SweepGradient
+            origin={centerVec}
+            c={centerVec}
+            colors={["white", "grey", "#222222", "black"]}
+            start={0}
+            end={360}
+            transform={animationRotation}
+          />
+        </Rect>
+      </Canvas>
+      <Text style={styles.dayText}>DAY</Text>
+      <Text style={styles.nightText}>NIGHT</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  canvas: {
+    height: 275,
+    width: 275,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  dayText: {
+    position: "absolute",
+    top: 70,
+    fontWeight: "100",
+    letterSpacing: 8,
+    fontSize: 90,
+    color: "black",
+    alignSelf: "center",
+  },
+  nightText: {
+    position: "absolute",
+    bottom: 70,
+    fontWeight: "100",
+    letterSpacing: 8,
+    fontSize: 90,
+    color: "white",
+    alignSelf: "center",
   },
 });
